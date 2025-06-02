@@ -113,7 +113,7 @@ const TikTokDashboard = () => {
     setLoading(true);
     try {
       // Echte Metricool API Anfrage über Netlify Function
-      const response = await fetch('/.netlify/functions/metricool');
+      const response = await fetch('/.netlify/functions/tiktok-api');
       
       if (response.ok) {
         const result = await response.json();
