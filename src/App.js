@@ -108,66 +108,93 @@ const TikTokDashboard = () => {
 
   const [loading, setLoading] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
+  const [showCustomDate, setShowCustomDate] = useState(false);
+  const [customDateRange, setCustomDateRange] = useState({
+    startDate: '',
+    endDate: ''
+  });
+  const [apiError, setApiError] = useState(null);
+  const [hasRealData, setHasRealData] = useState(false);
 
-  const fetchMetricoolData = async () => {
+  const fetchMetricoolData = async (customDates = null) => {
     setLoading(true);
+    setApiError(null);
+    
     try {
-      // Echte Metricool API Anfrage über Netlify Function
-      const response = await fetch('/.netlify/functions/tiktok-api');
-      
-      if (response.ok) {
-        const result = await response.json();
-        
-        if (result.success && result.profile && result.stats) {
-          // Echte API Daten verarbeiten
-          setData(prevData => ({
-            ...prevData,
-            followers: result.profile.followers || prevData.followers,
-            avgViews: Math.round(result.stats.avg_views) || prevData.avgViews,
-            totalLikes: result.stats.total_likes || prevData.totalLikes,
-            totalComments: result.stats.total_comments || prevData.totalComments,
-            totalShares: result.stats.total_shares || prevData.totalShares,
-            avgWatchTime: result.stats.avg_watch_time || prevData.avgWatchTime,
-            postsCount: result.posts?.length || prevData.postsCount,
-            lastUpdate: new Date().toISOString()
-          }));
-          
-          // Top Videos von API aktualisieren (falls verfügbar)
-          if (result.posts && result.posts.length > 0) {
-            const apiVideos = result.posts.slice(0, 5).map((post, index) => ({
-              id: post.id || index + 1,
-              title: post.title || post.caption?.substring(0, 40) + '...' || `Video ${index + 1}`,
-              views: post.views || Math.floor(Math.random() * 200000) + 50000,
-              likes: post.likes || Math.floor(Math.random() * 15000) + 5000,
-              comments: post.comments || Math.floor(Math.random() * 500) + 100,
-              shares: post.shares || Math.floor(Math.random() * 300) + 50
-            }));
-            setTopVideos(apiVideos);
-          }
-          
-          console.log('✅ Metricool API erfolgreich geladen');
-        } else {
-          throw new Error('API returned invalid data');
-        }
-      } else {
-        throw new Error(`API Error: ${response.status}`);
+      // API URL mit Custom Dates (falls vorhanden)
+      let apiUrl = '/.netlify/functions/tiktok-api';
+      if (customDates && customDates.startDate && customDates.endDate) {
+        apiUrl += `?startDate=${customDates.startDate}&endDate=${customDates.endDate}`;
+        console.log('📅 Custom Date Range:', customDates);
       }
-    } catch (error) {
-      console.warn('⚠️ Metricool API nicht verfügbar, verwende Mock-Daten:', error.message);
       
-      // Fallback: Mock-Daten mit kleinen Änderungen
-      setData(prevData => ({
-        ...prevData,
-        followers: prevData.followers + Math.floor(Math.random() * 20 - 10),
-        avgViews: prevData.avgViews + Math.floor(Math.random() * 1000 - 500),
-        totalLikes: prevData.totalLikes + Math.floor(Math.random() * 500 - 250),
-        totalComments: prevData.totalComments + Math.floor(Math.random() * 50 - 25),
-        totalShares: prevData.totalShares + Math.floor(Math.random() * 100 - 50),
-        avgWatchTime: Math.max(0, Math.min(100, prevData.avgWatchTime + (Math.random() * 4 - 2))),
-        lastUpdate: new Date().toISOString()
-      }));
+      console.log('🚀 Lade echte Daten von:', apiUrl);
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('📊 API Response:', result);
+      
+      // NUR echte API Daten akzeptieren
+      if (result.success && result.profile && result.stats && result.dataSource !== 'mock_with_realistic_values') {
+        console.log('✅ Echte Metricool-Daten erhalten!');
+        setHasRealData(true);
+        
+        // Echte API Daten verarbeiten
+        setData(prevData => ({
+          ...prevData,
+          followers: result.profile.followers,
+          avgViews: Math.round(result.stats.avg_views),
+          totalLikes: result.stats.total_likes,
+          totalComments: result.stats.total_comments,
+          totalShares: result.stats.total_shares,
+          avgWatchTime: result.stats.avg_watch_time,
+          postsCount: result.posts?.length || prevData.postsCount,
+          lastUpdate: new Date().toISOString()
+        }));
+        
+        // Top Videos von API aktualisieren
+        if (result.posts && result.posts.length > 0) {
+          const apiVideos = result.posts.slice(0, 5).map((post, index) => ({
+            id: post.id || index + 1,
+            title: post.title,
+            views: post.views,
+            likes: post.likes,
+            comments: post.comments,
+            shares: post.shares
+          }));
+          setTopVideos(apiVideos);
+        }
+        
+        setApiError(null);
+      } else {
+        // API gibt keine echten Daten zurück
+        setHasRealData(false);
+        throw new Error(
+          result.debugInfo 
+            ? `Metricool API Verbindung fehlgeschlagen. Debug: ${JSON.stringify(result.debugInfo)}`
+            : 'Keine echten Daten von Metricool API erhalten'
+        );
+      }
+      
+    } catch (error) {
+      console.error('❌ API Fehler:', error);
+      setHasRealData(false);
+      setApiError(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCustomDateSubmit = () => {
+    if (customDateRange.startDate && customDateRange.endDate) {
+      console.log('📅 Lade Custom Date Range:', customDateRange);
+      fetchMetricoolData(customDateRange);
+    } else {
+      alert('Bitte wähle Start- und Enddatum aus!');
     }
   };
 
@@ -379,11 +406,14 @@ const TikTokDashboard = () => {
         </div>
 
         {/* Zeitraum Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
           {['24h', '7d', '30d', '90d'].map(period => (
             <button
               key={period}
-              onClick={() => setSelectedPeriod(period)}
+              onClick={() => {
+              setSelectedPeriod(period);
+              setShowCustomDate(false);
+            }}
               style={{
                 padding: '8px 16px',
                 borderRadius: '8px',
@@ -400,6 +430,7 @@ const TikTokDashboard = () => {
             </button>
           ))}
           <button
+            onClick={() => setShowCustomDate(!showCustomDate)}
             style={{
               padding: '8px 16px',
               borderRadius: '8px',
@@ -407,8 +438,8 @@ const TikTokDashboard = () => {
               fontWeight: '500',
               border: 'none',
               cursor: 'pointer',
-              backgroundColor: 'white',
-              color: '#64748B',
+              backgroundColor: showCustomDate ? '#FF4757' : 'white',
+              color: showCustomDate ? 'white' : '#64748B',
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
               display: 'flex',
               alignItems: 'center'
@@ -417,6 +448,59 @@ const TikTokDashboard = () => {
             <Calendar size={16} style={{ marginRight: '6px' }} />
             Custom
           </button>
+          
+          {showCustomDate && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              backgroundColor: 'white',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+            }}>
+              <input
+                type="date"
+                value={customDateRange.startDate}
+                onChange={(e) => setCustomDateRange({...customDateRange, startDate: e.target.value})}
+                style={{
+                  padding: '4px 8px',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  color: '#334155'
+                }}
+              />
+              <span style={{ color: '#64748B', fontSize: '12px' }}>bis</span>
+              <input
+                type="date"
+                value={customDateRange.endDate}
+                onChange={(e) => setCustomDateRange({...customDateRange, endDate: e.target.value})}
+                style={{
+                  padding: '4px 8px',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  color: '#334155'
+                }}
+              />
+              <button
+                onClick={handleCustomDateSubmit}
+                style={{
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  border: 'none',
+                  cursor: 'pointer',
+                  backgroundColor: '#FF4757',
+                  color: 'white'
+                }}
+              >
+                Laden
+              </button>
+            </div>
+          )}
           
           <button
             onClick={fetchMetricoolData}
@@ -468,7 +552,7 @@ const TikTokDashboard = () => {
           <MetricCard
             icon={TrendingUp}
             label="Engagement Rate"
-            value={((data.totalLikes + data.totalComments + data.totalShares) / data.followers * 100).toFixed(1) + '%'}
+            value={((data.totalLikes + data.totalComments + data.totalShares) / (data.avgViews * data.postsCount) * 100).toFixed(1) + '%'}
             color="#F59E0B"
             iconBg="#FFFBEB"
           />
@@ -597,7 +681,80 @@ const TikTokDashboard = () => {
             />
           </div>
         </div>
+        )}
+
+        {/* Loading State */}
+        {loading && !apiError && (
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '40px',
+            textAlign: 'center',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+          }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              border: '4px solid #F3F4F6',
+              borderTop: '4px solid #FF4757',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 16px auto'
+            }}></div>
+            <h3 style={{ color: '#374151', fontSize: '18px', fontWeight: '600', marginBottom: '8px', margin: 0 }}>
+              Lade Metricool-Daten...
+            </h3>
+            <p style={{ color: '#6B7280', fontSize: '14px', margin: 0 }}>
+              Verbinde mit TikTok Analytics API
+            </p>
+          </div>
+        )}
+
+        {/* Initial State - Keine Daten geladen */}
+        {!loading && !apiError && !hasRealData && (
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '40px',
+            textAlign: 'center',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
+            <h3 style={{ color: '#374151', fontSize: '20px', fontWeight: '600', marginBottom: '8px', margin: 0 }}>
+              TikTok Analytics Dashboard
+            </h3>
+            <p style={{ color: '#6B7280', fontSize: '14px', marginBottom: '20px', margin: 0 }}>
+              Klicke auf "Daten aktualisieren" um deine echten TikTok-Daten zu laden
+            </p>
+            <button
+              onClick={() => fetchMetricoolData()}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#FF4757',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                margin: '0 auto'
+              }}
+            >
+              <TrendingUp size={20} style={{ marginRight: '8px' }} />
+              Daten aktualisieren
+            </button>
+          </div>
+        )}
       </div>
+      
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };
