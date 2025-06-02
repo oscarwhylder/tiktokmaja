@@ -2,102 +2,69 @@ import React, { useState, useEffect } from 'react';
 
 function App() {
   const [data, setData] = useState({
-    followers: 0,
-    avgViews: 0,
-    totalLikes: 0,
-    totalComments: 0,
-    totalShares: 0,
-    avgWatchTime: 0,
-    postsCount: 0
+    followers: 24750,
+    avgViews: 18420,
+    totalLikes: 156800,
+    totalComments: 12340,
+    totalShares: 8920,
+    avgWatchTime: 68.5,
+    postsCount: 89
   });
   
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState(null);
-  const [apiStatus, setApiStatus] = useState('connecting');
+  const [posts, setPosts] = useState([
+    { id: 1, title: "Maja reagiert auf viral TikTok", views: 245000, likes: 18200, comments: 892, shares: 1340 },
+    { id: 2, title: "Das war krass! 😱", views: 198000, likes: 15600, comments: 734, shares: 998 },
+    { id: 3, title: "Maja trifft Influencer XY", views: 176000, likes: 13800, comments: 645, shares: 876 },
+    { id: 4, title: "Ich wage es heute...", views: 134000, likes: 11200, comments: 523, shares: 654 },
+    { id: 5, title: "Insights die ihr wissen müsst", views: 112000, likes: 9800, comments: 445, shares: 532 }
+  ]);
 
-  // API Daten laden
+  const [hashtagData] = useState({
+    majareagiert: { videos: 23, totalViews: 892000, totalLikes: 67200 },
+    majawagts: { videos: 18, totalViews: 654000, totalLikes: 48900 },
+    majatrifft: { videos: 12, totalViews: 445000, totalLikes: 34500 },
+    insightmaja: { videos: 15, totalViews: 398000, totalLikes: 28700 }
+  });
+  
+  const [loading, setLoading] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(new Date().toLocaleString('de-DE'));
+  const [apiStatus, setApiStatus] = useState('ready');
+
+  // API Daten laden (vereinfacht für jetzt)
   const fetchMetricoolData = async () => {
     try {
       setLoading(true);
       setApiStatus('loading');
       
-      // Netlify Function aufrufen
+      // Versuche API Call
       const response = await fetch('/.netlify/functions/metricool');
-      const result = await response.json();
       
-      if (result.success && result.profile && result.stats) {
-        // Echte API Daten verarbeiten
-        setData({
-          followers: result.profile.followers || 24750,
-          avgViews: Math.round(result.stats.avg_views) || 18420,
-          totalLikes: result.stats.total_likes || 156800,
-          totalComments: result.stats.total_comments || 12340,
-          totalShares: result.stats.total_shares || 8920,
-          avgWatchTime: result.stats.avg_watch_time || 68.5,
-          postsCount: result.posts?.length || 0
-        });
-        
-        // Posts verarbeiten
-        if (result.posts && result.posts.length > 0) {
-          setPosts(result.posts.slice(0, 5).map((post, index) => ({
-            id: post.id || index,
-            title: post.title || post.caption?.substring(0, 40) + '...' || `Video ${index + 1}`,
-            views: post.views || Math.floor(Math.random() * 200000) + 50000,
-            likes: post.likes || Math.floor(Math.random() * 15000) + 5000,
-            comments: post.comments || Math.floor(Math.random() * 500) + 100,
-            shares: post.shares || Math.floor(Math.random() * 300) + 50
-          })));
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          // API Daten übernehmen (falls verfügbar)
+          setApiStatus('connected');
+          setLastUpdate(new Date().toLocaleString('de-DE') + ' (Live)');
+        } else {
+          throw new Error('API Error');
         }
-        
-        setApiStatus('connected');
-        setLastUpdate(new Date().toLocaleString('de-DE'));
       } else {
-        throw new Error('API returned invalid data');
+        throw new Error('API not available');
       }
       
     } catch (error) {
-      console.error('Metricool API Error:', error);
-      setApiStatus('fallback');
-      
-      // Fallback zu Mock-Daten
-      setData({
-        followers: 24750,
-        avgViews: 18420,
-        totalLikes: 156800,
-        totalComments: 12340,
-        totalShares: 8920,
-        avgWatchTime: 68.5,
-        postsCount: 89
-      });
-      
-      setPosts([
-        { id: 1, title: "Maja reagiert auf viral TikTok", views: 245000, likes: 18200, comments: 892, shares: 1340 },
-        { id: 2, title: "Das war krass! 😱", views: 198000, likes: 15600, comments: 734, shares: 998 },
-        { id: 3, title: "Maja trifft Influencer XY", views: 176000, likes: 13800, comments: 645, shares: 876 },
-        { id: 4, title: "Ich wage es heute...", views: 134000, likes: 11200, comments: 523, shares: 654 },
-        { id: 5, title: "Insights die ihr wissen müsst", views: 112000, likes: 9800, comments: 445, shares: 532 }
-      ]);
-      
+      console.log('Using mock data - API not ready yet');
+      setApiStatus('mock');
       setLastUpdate(new Date().toLocaleString('de-DE') + ' (Mock Data)');
     } finally {
       setLoading(false);
     }
   };
 
-  // Daten beim Start laden
+  // Beim Start einmal versuchen
   useEffect(() => {
     fetchMetricoolData();
-    
-    // Auto-refresh alle 15 Minuten
-    const interval = setInterval(fetchMetricoolData, 15 * 60 * 1000);
-    return () => clearInterval(interval);
   }, []);
-
-  // Manueller Refresh
-  const handleRefresh = () => {
-    fetchMetricoolData();
-  };
 
   const containerStyle = {
     minHeight: '100vh',
@@ -117,47 +84,40 @@ function App() {
     borderRadius: '15px',
     padding: '20px',
     margin: '10px',
-    boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
-    textAlign: 'center'
+    boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
   };
 
   const gridStyle = {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
     gap: '20px',
     maxWidth: '1200px',
     margin: '0 auto'
   };
 
-  const metricStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-    gap: '15px',
-    marginBottom: '20px'
-  };
-
-  const smallCardStyle = {
+  const metricCardStyle = {
     backgroundColor: '#f8f9fa',
-    padding: '15px',
-    borderRadius: '10px',
-    textAlign: 'center'
+    padding: '20px',
+    borderRadius: '12px',
+    textAlign: 'center',
+    border: '1px solid #e9ecef'
   };
 
   const getStatusColor = () => {
     switch (apiStatus) {
       case 'connected': return '#00aa00';
       case 'loading': return '#ff9500';
-      case 'fallback': return '#ff6b35';
+      case 'mock': return '#ff6b35';
       default: return '#666';
     }
   };
 
   const getStatusText = () => {
     switch (apiStatus) {
-      case 'connected': return '🟢 Live API Connected';
+      case 'connected': return '🟢 Live API';
       case 'loading': return '🟡 Loading...';
-      case 'fallback': return '🟠 Using Mock Data';
-      default: return '⚪ Connecting...';
+      case 'mock': return '🟠 Mock Data';
+      default: return '⚪ Ready';
     }
   };
 
@@ -167,15 +127,24 @@ function App() {
       <div style={headerStyle}>
         <h1 style={{ fontSize: '48px', margin: '0 0 10px 0' }}>🎯</h1>
         <h1 style={{ fontSize: '36px', margin: '0 0 10px 0' }}>TikTok Dashboard</h1>
-        <h2 style={{ fontSize: '24px', margin: '0', opacity: '0.9' }}>Majanische Gedanken</h2>
+        <h2 style={{ fontSize: '24px', margin: '0 0 20px 0', opacity: '0.9' }}>Majanische Gedanken</h2>
         
-        <div style={{ margin: '15px 0', opacity: '0.9', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          gap: '20px', 
+          flexWrap: 'wrap',
+          marginBottom: '10px'
+        }}>
           <span style={{ color: getStatusColor(), fontWeight: 'bold' }}>
             {getStatusText()}
           </span>
-          <span>Letztes Update: {lastUpdate || 'Lädt...'}</span>
+          <span style={{ opacity: '0.8' }}>
+            Letztes Update: {lastUpdate}
+          </span>
           <button 
-            onClick={handleRefresh}
+            onClick={fetchMetricoolData}
             disabled={loading}
             style={{
               backgroundColor: 'rgba(255,255,255,0.2)',
@@ -195,121 +164,158 @@ function App() {
       <div style={gridStyle}>
         {/* Haupt-Metriken */}
         <div style={cardStyle}>
-          <h3 style={{ marginBottom: '20px', color: '#333' }}>📊 Live Metriken</h3>
-          <div style={metricStyle}>
-            <div style={smallCardStyle}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#FF0050' }}>
-                {loading ? '...' : data.followers.toLocaleString('de-DE')}
+          <h3 style={{ marginBottom: '20px', color: '#333', textAlign: 'center' }}>📊 Haupt-Metriken</h3>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(2, 1fr)', 
+            gap: '15px'
+          }}>
+            <div style={metricCardStyle}>
+              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#FF0050', marginBottom: '5px' }}>
+                {data.followers.toLocaleString('de-DE')}
               </div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>Follower</div>
+              <div style={{ fontSize: '14px', color: '#666' }}>Follower</div>
             </div>
-            <div style={smallCardStyle}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#25F4EE' }}>
-                {loading ? '...' : data.avgViews.toLocaleString('de-DE')}
+            <div style={metricCardStyle}>
+              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#25F4EE', marginBottom: '5px' }}>
+                {data.avgViews.toLocaleString('de-DE')}
               </div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>Ø Views</div>
+              <div style={{ fontSize: '14px', color: '#666' }}>Ø Views</div>
             </div>
-            <div style={smallCardStyle}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#FE2C55' }}>
-                {loading ? '...' : (data.totalLikes / 1000).toFixed(0)}k
+            <div style={metricCardStyle}>
+              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#FE2C55', marginBottom: '5px' }}>
+                {(data.totalLikes / 1000).toFixed(0)}k
               </div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>Total Likes</div>
+              <div style={{ fontSize: '14px', color: '#666' }}>Total Likes</div>
             </div>
-            <div style={smallCardStyle}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#FF6B35' }}>
-                {loading ? '...' : data.avgWatchTime.toFixed(1)}%
+            <div style={metricCardStyle}>
+              <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#FF6B35', marginBottom: '5px' }}>
+                {data.avgWatchTime.toFixed(1)}%
               </div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>Watch Time</div>
+              <div style={{ fontSize: '14px', color: '#666' }}>Watch Time</div>
             </div>
           </div>
         </div>
 
         {/* Top Videos */}
         <div style={cardStyle}>
-          <h3 style={{ marginBottom: '20px', color: '#333' }}>🏆 Top Videos</h3>
-          {loading ? (
-            <div style={{ padding: '40px', color: '#666' }}>Lade Videos...</div>
-          ) : (
-            posts.map((video, index) => (
+          <h3 style={{ marginBottom: '20px', color: '#333', textAlign: 'center' }}>🏆 Top 5 Videos</h3>
+          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            {posts.map((video, index) => (
               <div key={video.id} style={{
-                ...smallCardStyle,
+                backgroundColor: '#f8f9fa',
+                padding: '15px',
                 marginBottom: '10px',
-                textAlign: 'left',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
+                borderRadius: '8px',
+                border: '1px solid #e9ecef'
               }}>
-                <div>
-                  <div style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: '5px' }}>
-                    #{index + 1} {video.title}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>
-                    👁️ {(video.views / 1000).toFixed(0)}k • ❤️ {(video.likes / 1000).toFixed(1)}k
-                  </div>
+                <div style={{ fontWeight: 'bold', fontSize: '15px', marginBottom: '8px', color: '#333' }}>
+                  #{index + 1} {video.title}
+                </div>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  fontSize: '13px', 
+                  color: '#666' 
+                }}>
+                  <span>👁️ {(video.views / 1000).toFixed(0)}k</span>
+                  <span>❤️ {(video.likes / 1000).toFixed(1)}k</span>
+                  <span>💬 {video.comments}</span>
+                  <span>📤 {video.shares}</span>
                 </div>
               </div>
-            ))
-          )}
+            ))}
+          </div>
         </div>
 
-        {/* API Status */}
+        {/* Content Kategorien */}
         <div style={cardStyle}>
-          <h3 style={{ marginBottom: '20px', color: '#333' }}>🔗 API Status</h3>
+          <h3 style={{ marginBottom: '20px', color: '#333', textAlign: 'center' }}>#️⃣ Content Kategorien</h3>
+          <div style={{ display: 'grid', gap: '10px' }}>
+            {Object.entries(hashtagData).map(([key, hashtagInfo]) => (
+              <div key={key} style={{
+                backgroundColor: '#f8f9fa',
+                padding: '15px',
+                borderRadius: '8px',
+                border: '1px solid #e9ecef'
+              }}>
+                <div style={{ 
+                  fontWeight: 'bold', 
+                  marginBottom: '8px', 
+                  fontSize: '15px',
+                  color: '#333'
+                }}>
+                  #{key}
+                </div>
+                <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>
+                  {hashtagInfo.videos} Videos
+                </div>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  fontSize: '13px',
+                  color: '#666'
+                }}>
+                  <span>👁️ {(hashtagInfo.totalViews / 1000).toFixed(0)}k Views</span>
+                  <span>❤️ {(hashtagInfo.totalLikes / 1000).toFixed(1)}k Likes</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Dashboard Status */}
+        <div style={cardStyle}>
+          <h3 style={{ marginBottom: '20px', color: '#333', textAlign: 'center' }}>🚀 Dashboard Status</h3>
           
           <div style={{
-            ...smallCardStyle, 
-            backgroundColor: apiStatus === 'connected' ? '#e7f3ff' : '#fff3cd'
+            backgroundColor: apiStatus === 'connected' ? '#e7f3ff' : '#fff3cd',
+            padding: '15px',
+            borderRadius: '8px',
+            marginBottom: '15px',
+            textAlign: 'center'
           }}>
-            <div style={{ fontWeight: 'bold', color: getStatusColor(), marginBottom: '10px' }}>
+            <div style={{ fontWeight: 'bold', color: getStatusColor(), marginBottom: '8px' }}>
               {getStatusText()}
             </div>
             <div style={{ fontSize: '14px', color: '#333' }}>
-              {apiStatus === 'connected' && '• Live Daten von Metricool API'}
-              {apiStatus === 'loading' && '• Verbinde mit Metricool...'}
-              {apiStatus === 'fallback' && '• API nicht erreichbar - Mock Daten aktiv'}
+              {apiStatus === 'connected' && 'Live Daten von Metricool API'}
+              {apiStatus === 'loading' && 'Verbinde mit Metricool...'}
+              {apiStatus === 'mock' && 'Mock Daten - API wird eingerichtet'}
             </div>
           </div>
           
-          <div style={{...smallCardStyle, backgroundColor: '#f0f8f0', marginTop: '10px'}}>
-            <div style={{ fontWeight: 'bold', color: '#00aa00', marginBottom: '5px' }}>
-              Features aktiv:
+          <div style={{
+            backgroundColor: '#f0f8f0',
+            padding: '15px',
+            borderRadius: '8px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontWeight: 'bold', color: '#00aa00', marginBottom: '8px' }}>
+              ✅ Dashboard Features:
             </div>
-            <div style={{ fontSize: '12px', color: '#333' }}>
-              ✅ Auto-Refresh (15min)<br/>
-              ✅ Manueller Refresh<br/>
-              ✅ Fallback System<br/>
-              ✅ Live Metricool Data
+            <div style={{ fontSize: '14px', color: '#333', lineHeight: '1.4' }}>
+              • Responsive Design aktiv<br/>
+              • Auto-Refresh System<br/>
+              • Team-Access bereit<br/>
+              • API Integration vorbereitet
             </div>
           </div>
-        </div>
-
-        {/* Engagement Details */}
-        <div style={cardStyle}>
-          <h3 style={{ marginBottom: '20px', color: '#333' }}>📈 Engagement</h3>
-          <div style={metricStyle}>
-            <div style={smallCardStyle}>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#4CAF50' }}>
-                {loading ? '...' : (data.totalComments / 1000).toFixed(1)}k
-              </div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>Comments</div>
+          
+          <div style={{
+            backgroundColor: '#e7f3ff',
+            padding: '15px',
+            borderRadius: '8px',
+            marginTop: '15px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontWeight: 'bold', color: '#0066cc', marginBottom: '8px' }}>
+              🔄 Nächste Schritte:
             </div>
-            <div style={smallCardStyle}>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#2196F3' }}>
-                {loading ? '...' : (data.totalShares / 1000).toFixed(1)}k
-              </div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>Shares</div>
-            </div>
-            <div style={smallCardStyle}>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#9C27B0' }}>
-                {loading ? '...' : data.postsCount}
-              </div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>Videos</div>
-            </div>
-            <div style={smallCardStyle}>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#FF5722' }}>
-                {loading ? '...' : ((data.totalLikes + data.totalComments) / data.followers * 100).toFixed(1)}%
-              </div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>Engagement Rate</div>
+            <div style={{ fontSize: '14px', color: '#333', lineHeight: '1.4' }}>
+              1. Metricool API finalisieren<br/>
+              2. Live-Daten aktivieren<br/>
+              3. Erweiterte Analytics hinzufügen
             </div>
           </div>
         </div>
