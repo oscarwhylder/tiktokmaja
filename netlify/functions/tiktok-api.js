@@ -10,89 +10,90 @@ exports.handler = async (event, context) => {
     return { statusCode: 200, headers, body: '' };
   }
 
+  console.log('🚀 API Call gestartet...');
+
   try {
-    // ✅ KORREKTE Metricool API Credentials
     const USER_TOKEN = 'EBZGDEHKMQCQPXFXXKGDCFNYGDSODJFLBDLYTNATEJAALOOYVLLASOOPEKZUIQEK';
     const BLOG_ID = '4327861';
     const USER_ID = '2134068';
-    const BASE_URL = 'https://app.metricool.com/api';  // ✅ Richtige URL!
+    
+    // 🧪 Teste verschiedene API Endpoints
+    const testEndpoints = [
+      `https://app.metricool.com/api/admin/simpleProfiles?blogId=${BLOG_ID}&userId=${USER_ID}`,
+      `https://app.metricool.com/api/posts?blogId=${BLOG_ID}&userId=${USER_ID}`,
+      `https://app.metricool.com/api/metrics?blogId=${BLOG_ID}&userId=${USER_ID}`
+    ];
 
-    console.log('🚀 Verbinde mit korrekter Metricool API...');
+    console.log('🔍 Teste API Endpoints:', testEndpoints);
 
-    // ✅ Korrekte API Calls mit richtigen Parametern
-    const [profileRes, postsRes] = await Promise.all([
-      fetch(`${BASE_URL}/admin/simpleProfiles?blogId=${BLOG_ID}&userId=${USER_ID}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'TikTok-Dashboard/1.0',
-          'X-Mc-Auth': USER_TOKEN  // ✅ Richtige Auth!
+    // Teste jeden Endpoint einzeln
+    for (let i = 0; i < testEndpoints.length; i++) {
+      try {
+        const response = await fetch(testEndpoints[i], {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'TikTok-Dashboard/1.0',
+            'X-Mc-Auth': USER_TOKEN
+          }
+        });
+        
+        console.log(`📊 Endpoint ${i + 1} Status: ${response.status} ${response.statusText}`);
+        
+        if (response.ok) {
+          const data = await response.text(); // Erst als Text lesen
+          console.log(`✅ Endpoint ${i + 1} Response (erste 200 Zeichen):`, data.substring(0, 200));
+          
+          try {
+            const jsonData = JSON.parse(data);
+            console.log(`✅ Endpoint ${i + 1} JSON Keys:`, Object.keys(jsonData));
+          } catch (e) {
+            console.log(`❌ Endpoint ${i + 1} ist kein gültiges JSON`);
+          }
+        } else {
+          const errorText = await response.text();
+          console.log(`❌ Endpoint ${i + 1} Error:`, errorText.substring(0, 200));
         }
-      }),
-      fetch(`${BASE_URL}/posts?blogId=${BLOG_ID}&userId=${USER_ID}&limit=10`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'TikTok-Dashboard/1.0',
-          'X-Mc-Auth': USER_TOKEN
-        }
-      })
-    ]);
-
-    console.log('📊 API Status:', {
-      profile: profileRes.status,
-      posts: postsRes.status
-    });
-
-    // Response verarbeiten
-    const profile = profileRes.ok ? await profileRes.json().catch(e => null) : null;
-    const posts = postsRes.ok ? await postsRes.json().catch(e => null) : null;
-
-    if (profile && posts) {
-      console.log('✅ Echte Metricool-Daten erhalten!');
-      
-      // Echte API Daten strukturieren
-      const processedData = {
-        profile: {
-          followers: profile.followers || 24750,
-          name: profile.name || "Majanische Gedanken"
-        },
-        stats: {
-          avg_views: posts.length > 0 ? Math.round(posts.reduce((sum, post) => sum + (post.views || 0), 0) / posts.length) : 18420,
-          total_likes: posts.reduce((sum, post) => sum + (post.likes || 0), 0) || 156800,
-          total_comments: posts.reduce((sum, post) => sum + (post.comments || 0), 0) || 12340,
-          total_shares: posts.reduce((sum, post) => sum + (post.shares || 0), 0) || 8920,
-          avg_watch_time: 68.5
-        },
-        posts: posts.slice(0, 5).map(post => ({
-          id: post.id,
-          title: post.caption ? post.caption.substring(0, 50) + '...' : post.title,
-          views: post.views || Math.floor(Math.random() * 100000) + 50000,
-          likes: post.likes || Math.floor(Math.random() * 5000) + 1000,
-          comments: post.comments || Math.floor(Math.random() * 200) + 50,
-          shares: post.shares || Math.floor(Math.random() * 100) + 20
-        })),
-        success: true,
-        lastUpdate: new Date().toISOString()
-      };
-
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(processedData)
-      };
-    } else {
-      throw new Error('API returned empty data');
+      } catch (error) {
+        console.log(`💥 Endpoint ${i + 1} Network Error:`, error.message);
+      }
     }
 
-  } catch (error) {
-    console.error('❌ Metricool API Fehler:', error);
+    // 🎯 Nur echte API-Daten akzeptieren - KEINE Mock-Daten!
+    console.log('🔍 Teste echte Metricool API Endpoints...');
     
     return {
-      statusCode: 200,  // Erfolg mit Fallback
+      statusCode: 200,
       headers,
       body: JSON.stringify({
         success: false,
+        error: 'Metricool API Integration noch nicht funktional',
+        debugInfo: {
+          message: 'API Tests durchgeführt - siehe Netlify Function Logs',
+          userToken: USER_TOKEN ? 'Present' : 'Missing',
+          blogId: BLOG_ID,
+          userId: USER_ID,
+          endpoints: testEndpoints,
+          nextSteps: [
+            '1. Check Metricool API Documentation',
+            '2. Verify API Token Permissions',
+            '3. Test API Endpoints manually',
+            '4. Update API Integration'
+          ]
+        },
+        timestamp: new Date().toISOString()
+      })
+    };
+
+  } catch (error) {
+    console.error('💥 Genereller Fehler:', error);
+    
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        error: error.message,
         fallback: {
           followers: 24750,
           avgViews: 18420,
@@ -107,9 +108,7 @@ exports.handler = async (event, context) => {
             { title: "Ich wage es heute...", views: 134000, likes: 11200, comments: 523, shares: 654 },
             { title: "Insights die ihr wissen müsst", views: 112000, likes: 9800, comments: 445, shares: 532 }
           ]
-        },
-        error: error.message,
-        timestamp: new Date().toISOString()
+        }
       })
     };
   }
