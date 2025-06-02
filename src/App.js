@@ -192,7 +192,9 @@ const TikTokDashboard = () => {
         const errorMessage = result.error || 'API returned no valid data';
         const debugInfo = result.debugInfo ? ` | Debug: ${JSON.stringify(result.debugInfo)}` : '';
         
-        throw new Error(errorMessage + debugInfo);
+        // 🚨 HIER WAR DER BUG: Error wird korrekt gesetzt!
+        setApiError(errorMessage + debugInfo);
+        console.log('🚨 ApiError gesetzt auf:', errorMessage + debugInfo);
       }
       
     } catch (error) {
