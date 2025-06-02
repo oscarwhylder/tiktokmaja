@@ -1,0 +1,4 @@
+bash
+git add _headers
+git commit -m "Fix CSP for TikTok Dashboard"
+git push
