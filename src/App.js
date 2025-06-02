@@ -128,19 +128,28 @@ const TikTokDashboard = () => {
         console.log('📅 Custom Date Range:', customDates);
       }
       
-      console.log('🚀 Lade echte Daten von:', apiUrl);
+      console.log('🚀 Fetching from:', apiUrl);
+      console.log('🔍 Starting API call...');
+      
       const response = await fetch(apiUrl);
+      
+      console.log('📡 Response Status:', response.status, response.statusText);
+      console.log('📡 Response Headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const result = await response.json();
-      console.log('📊 API Response:', result);
+      console.log('📊 Full API Response:', result);
+      console.log('🔍 Response Keys:', Object.keys(result));
+      console.log('✅ Success Value:', result.success);
+      console.log('💾 Has Profile:', !!result.profile);
+      console.log('📈 Has Stats:', !!result.stats);
       
-      // NUR echte API Daten akzeptieren
-      if (result.success && result.profile && result.stats && result.dataSource !== 'mock_with_realistic_values') {
-        console.log('✅ Echte Metricool-Daten erhalten!');
+      // STRIKTE Prüfung für echte Daten
+      if (result.success === true && result.profile && result.stats) {
+        console.log('✅ ECHTE DATEN ERKANNT!');
         setHasRealData(true);
         
         // Echte API Daten verarbeiten
@@ -170,22 +179,32 @@ const TikTokDashboard = () => {
         }
         
         setApiError(null);
+        console.log('✅ Dashboard mit echten Daten aktualisiert!');
       } else {
-        // API gibt keine echten Daten zurück
+        // KEINE echten Daten - Fehler anzeigen
+        console.log('❌ KEINE ECHTEN DATEN!');
+        console.log('❌ Success:', result.success);
+        console.log('❌ Error:', result.error);
+        console.log('❌ Debug Info:', result.debugInfo);
+        
         setHasRealData(false);
-        throw new Error(
-          result.debugInfo 
-            ? `Metricool API Verbindung fehlgeschlagen. Debug: ${JSON.stringify(result.debugInfo)}`
-            : 'Keine echten Daten von Metricool API erhalten'
-        );
+        
+        const errorMessage = result.error || 'API returned no valid data';
+        const debugInfo = result.debugInfo ? ` | Debug: ${JSON.stringify(result.debugInfo)}` : '';
+        
+        throw new Error(errorMessage + debugInfo);
       }
       
     } catch (error) {
-      console.error('❌ API Fehler:', error);
+      console.error('💥 FETCH ERROR:', error);
+      console.error('💥 Error Message:', error.message);
+      console.error('💥 Error Stack:', error.stack);
+      
       setHasRealData(false);
-      setApiError(error.message);
+      setApiError(`API Fehler: ${error.message}`);
     } finally {
       setLoading(false);
+      console.log('🏁 Fetch completed. Loading:', false);
     }
   };
 
