@@ -1,380 +1,550 @@
 import React, { useState, useEffect } from 'react';
 
-function App() {
+// Lucide React Icons (inline SVG components)
+const Users = ({ size = 20, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/>
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </svg>
+);
+
+const Eye = ({ size = 20, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+
+const Heart = ({ size = 20, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+  </svg>
+);
+
+const MessageCircle = ({ size = 20, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+  </svg>
+);
+
+const Share2 = ({ size = 20, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="18" cy="5" r="3"/>
+    <circle cx="6" cy="12" r="3"/>
+    <circle cx="18" cy="19" r="3"/>
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+  </svg>
+);
+
+const Clock = ({ size = 20, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="12" cy="12" r="10"/>
+    <polyline points="12,6 12,12 16,14"/>
+  </svg>
+);
+
+const TrendingUp = ({ size = 20, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <polyline points="22,7 13.5,15.5 8.5,10.5 2,17"/>
+    <polyline points="16,7 22,7 22,13"/>
+  </svg>
+);
+
+const Play = ({ size = 20, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <polygon points="5,3 19,12 5,21"/>
+  </svg>
+);
+
+const Calendar = ({ size = 20, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+    <line x1="16" y1="2" x2="16" y2="6"/>
+    <line x1="8" y1="2" x2="8" y2="6"/>
+    <line x1="3" y1="10" x2="21" y2="10"/>
+  </svg>
+);
+
+const Hash = ({ size = 20, color = 'currentColor', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <line x1="4" y1="9" x2="20" y2="9"/>
+    <line x1="4" y1="15" x2="20" y2="15"/>
+    <line x1="10" y1="3" x2="8" y2="21"/>
+    <line x1="16" y1="3" x2="14" y2="21"/>
+  </svg>
+);
+
+const TikTokDashboard = () => {
   const [data, setData] = useState({
     followers: 24750,
     avgViews: 18420,
     totalLikes: 156800,
-    engagement: 6.8,
-    growthRate: 12.4,
-    totalVideos: 89
+    totalComments: 12340,
+    totalShares: 8920,
+    avgWatchTime: 68.5,
+    videoDuration: 45.2,
+    avgWatchTimeSeconds: 31.0,
+    postsCount: 89,
+    lastUpdate: new Date().toISOString()
   });
 
-  const [topVideos] = useState([
-    { id: 1, title: "Maja reagiert auf viral TikTok", views: 245000, likes: 18200, engagement: 7.4 },
-    { id: 2, title: "Das war krass! 😱", views: 198000, likes: 15600, engagement: 7.9 },
-    { id: 3, title: "Maja trifft Influencer XY", views: 176000, likes: 13800, engagement: 7.8 },
-    { id: 4, title: "Ich wage es heute...", views: 134000, likes: 11200, engagement: 8.4 },
-    { id: 5, title: "Insights die ihr wissen müsst", views: 112000, likes: 9800, engagement: 8.8 }
+  const [topVideos, setTopVideos] = useState([
+    { id: 1, title: "Maja reagiert auf viral TikTok", views: 245000, likes: 18200, comments: 892, shares: 1340 },
+    { id: 2, title: "Das war krass! 😱", views: 198000, likes: 15600, comments: 734, shares: 998 },
+    { id: 3, title: "Maja trifft Influencer XY", views: 176000, likes: 13800, comments: 645, shares: 876 },
+    { id: 4, title: "Ich wage es heute...", views: 134000, likes: 11200, comments: 523, shares: 654 },
+    { id: 5, title: "Insights die ihr wissen müsst", views: 112000, likes: 9800, comments: 445, shares: 532 }
   ]);
 
-  const [weeklyData] = useState([
-    { day: 'Mo', views: 15200, likes: 1240 },
-    { day: 'Di', views: 18900, likes: 1580 },
-    { day: 'Mi', views: 22400, likes: 1890 },
-    { day: 'Do', views: 19800, likes: 1650 },
-    { day: 'Fr', views: 28500, likes: 2340 },
-    { day: 'Sa', views: 31200, likes: 2680 },
-    { day: 'So', views: 24800, likes: 2020 }
-  ]);
+  const [hashtagData, setHashtagData] = useState({
+    majareagiert: { videos: 23, totalViews: 892000, totalLikes: 67200, totalComments: 3800, totalShares: 5100 },
+    majawagts: { videos: 18, totalViews: 654000, totalLikes: 48900, totalComments: 2800, totalShares: 3900 },
+    majatrifft: { videos: 12, totalViews: 445000, totalLikes: 34500, totalComments: 1900, totalShares: 2600 },
+    insightmaja: { videos: 15, totalViews: 398000, totalLikes: 28700, totalComments: 1650, totalShares: 2180 }
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState('30d');
+
+  const fetchMetricoolData = async () => {
+    setLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setData(prevData => ({
+        ...prevData,
+        lastUpdate: new Date().toISOString()
+      }));
+    } catch (error) {
+      console.error('Fehler beim Laden der Daten:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const MetricCard = ({ icon: Icon, label, value, color, iconBg }) => (
+    <div style={{
+      backgroundColor: 'white',
+      borderRadius: '16px',
+      padding: '20px',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+      border: `3px solid ${color}`,
+      borderLeft: `6px solid ${color}`
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+        <div style={{
+          width: '36px',
+          height: '36px',
+          borderRadius: '50%',
+          backgroundColor: iconBg,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginRight: '12px'
+        }}>
+          <Icon size={18} color={color} />
+        </div>
+        <span style={{ fontSize: '14px', color: '#666', fontWeight: '500' }}>{label}</span>
+      </div>
+      <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#333' }}>
+        {typeof value === 'number' ? value.toLocaleString('de-DE') : value}
+      </div>
+    </div>
+  );
+
+  const VideoRankCard = ({ video, rank }) => {
+    const getRankColor = (rank) => {
+      switch(rank) {
+        case 1: return '#FF4757';
+        case 2: return '#FF6B35';
+        case 3: return '#FF8C42';
+        case 4: return '#FFA726';
+        case 5: return '#FFB74D';
+        default: return '#FF4757';
+      }
+    };
+
+    return (
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        padding: '16px',
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        marginBottom: '12px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+          <div style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            backgroundColor: getRankColor(rank),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: '12px'
+          }}>
+            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '14px' }}>#{rank}</span>
+          </div>
+          <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#333', margin: 0, flex: 1 }}>
+            {video.title}
+          </h4>
+        </div>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', textAlign: 'center' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+              <Eye size={14} color="#666" />
+            </div>
+            <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
+              {(video.views / 1000).toFixed(0)}k
+            </div>
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+              <Heart size={14} color="#FF4757" />
+            </div>
+            <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
+              {(video.likes / 1000).toFixed(1)}k
+            </div>
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+              <MessageCircle size={14} color="#3B82F6" />
+            </div>
+            <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
+              {video.comments}
+            </div>
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+              <Share2 size={14} color="#10B981" />
+            </div>
+            <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
+              {video.shares}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const HashtagCategoryCard = ({ title, hashtag, data, color, textColor, bgColor }) => (
+    <div style={{
+      backgroundColor: 'white',
+      borderRadius: '16px',
+      padding: '20px',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+      marginBottom: '16px'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '8px',
+          backgroundColor: bgColor,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginRight: '12px'
+        }}>
+          <Hash size={20} color={color} />
+        </div>
+        <div>
+          <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#333', margin: 0 }}>{title}</h3>
+          <p style={{ fontSize: '14px', color: '#666', margin: 0 }}>{hashtag} • {data.videos} Videos</p>
+        </div>
+      </div>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Views</p>
+          <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#333', margin: 0 }}>
+            {(data.totalViews / 1000).toFixed(0)}k
+          </p>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Likes</p>
+          <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#333', margin: 0 }}>
+            {(data.totalLikes / 1000).toFixed(1)}k
+          </p>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Comments</p>
+          <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#333', margin: 0 }}>
+            {(data.totalComments / 1000).toFixed(1)}k
+          </p>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0' }}>Shares</p>
+          <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#333', margin: 0 }}>
+            {(data.totalShares / 1000).toFixed(1)}k
+          </p>
+        </div>
+      </div>
+      
+      <div style={{ 
+        borderTop: '1px solid #F1F5F9', 
+        paddingTop: '12px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <span style={{ fontSize: '14px', color: '#666' }}>Ø Views pro Video</span>
+        <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
+          {(data.totalViews / data.videos / 1000).toFixed(1)}k
+        </span>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      backgroundColor: '#F8FAFC',
       padding: '20px',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
-      {/* Header */}
-      <div style={{
-        textAlign: 'center',
-        marginBottom: '30px',
-        color: 'white'
-      }}>
-        <div style={{ fontSize: '48px', marginBottom: '10px' }}>🎯</div>
-        <h1 style={{ 
-          fontSize: '42px', 
-          margin: '0 0 8px 0', 
-          fontWeight: '700',
-          letterSpacing: '-0.5px'
-        }}>
-          TikTok Dashboard
-        </h1>
-        <h2 style={{ 
-          fontSize: '24px', 
-          margin: '0 0 15px 0', 
-          fontWeight: '400',
-          opacity: '0.9'
-        }}>
-          Majanische Gedanken
-        </h2>
-        <div style={{ 
-          fontSize: '14px', 
-          opacity: '0.8',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '20px',
-          flexWrap: 'wrap'
-        }}>
-          <span>🔴 Live</span>
-          <span>•</span>
-          <span>Letztes Update: {new Date().toLocaleString('de-DE')}</span>
-          <span>•</span>
-          <span>Auto-Refresh: 15min</span>
-        </div>
-      </div>
-
-      <div style={{
-        maxWidth: '1400px',
-        margin: '0 auto',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-        gap: '24px'
-      }}>
-        {/* Haupt-Metriken */}
-        <div style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '20px',
-          padding: '24px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-          border: '1px solid rgba(255,255,255,0.2)'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: '20px'
-          }}>
-            <span style={{ fontSize: '24px', marginRight: '10px' }}>📊</span>
-            <h3 style={{ margin: '0', fontSize: '18px', fontWeight: '600' }}>Haupt-Metriken</h3>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {/* Header */}
+        <div style={{ marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #FF4757, #FF6B35)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: '16px'
+            }}>
+              <Play size={24} color="white" />
+            </div>
+            <h1 style={{ fontSize: '32px', fontWeight: 'bold', color: '#1E293B', margin: 0 }}>
+              TikTok Analytics
+            </h1>
           </div>
-          
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '16px'
-          }}>
-            <div style={{
-              background: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
-              padding: '20px',
-              borderRadius: '16px',
-              color: 'white',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '28px', fontWeight: '700', marginBottom: '4px' }}>
-                {data.followers.toLocaleString('de-DE')}
-              </div>
-              <div style={{ fontSize: '12px', opacity: '0.9' }}>Follower</div>
-            </div>
-            
-            <div style={{
-              background: 'linear-gradient(135deg, #4ECDC4, #44A08D)',
-              padding: '20px',
-              borderRadius: '16px',
-              color: 'white',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '28px', fontWeight: '700', marginBottom: '4px' }}>
-                {data.avgViews.toLocaleString('de-DE')}
-              </div>
-              <div style={{ fontSize: '12px', opacity: '0.9' }}>Ø Views</div>
-            </div>
-            
-            <div style={{
-              background: 'linear-gradient(135deg, #A8E6CF, #7FCDCD)',
-              padding: '20px',
-              borderRadius: '16px',
-              color: 'white',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '28px', fontWeight: '700', marginBottom: '4px' }}>
-                {(data.totalLikes / 1000).toFixed(0)}k
-              </div>
-              <div style={{ fontSize: '12px', opacity: '0.9' }}>Total Likes</div>
-            </div>
-            
-            <div style={{
-              background: 'linear-gradient(135deg, #FFD93D, #FF9A3D)',
-              padding: '20px',
-              borderRadius: '16px',
-              color: 'white',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '28px', fontWeight: '700', marginBottom: '4px' }}>
-                {data.engagement.toFixed(1)}%
-              </div>
-              <div style={{ fontSize: '12px', opacity: '0.9' }}>Engagement</div>
-            </div>
-          </div>
+          <p style={{ color: '#64748B', fontSize: '14px', margin: 0 }}>
+            Powered by Metricool API • Letztes Update: {new Date(data.lastUpdate).toLocaleString('de-DE')}
+          </p>
         </div>
 
-        {/* Performance Chart */}
+        {/* Zeitraum Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+          {['24h', '7d', '30d', '90d'].map(period => (
+            <button
+              key={period}
+              onClick={() => setSelectedPeriod(period)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                border: 'none',
+                cursor: 'pointer',
+                backgroundColor: selectedPeriod === period ? '#FF4757' : 'white',
+                color: selectedPeriod === period ? 'white' : '#64748B',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              {period}
+            </button>
+          ))}
+          <button
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: 'white',
+              color: '#64748B',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <Calendar size={16} style={{ marginRight: '6px' }} />
+            Custom
+          </button>
+          
+          <button
+            onClick={fetchMetricoolData}
+            disabled={loading}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              border: 'none',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              backgroundColor: 'white',
+              color: '#64748B',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              marginLeft: 'auto',
+              opacity: loading ? 0.6 : 1
+            }}
+          >
+            <TrendingUp size={16} style={{ marginRight: '6px' }} />
+            {loading ? 'Aktualisiert...' : 'Daten aktualisieren'}
+          </button>
+        </div>
+
+        {/* Hauptmetriken */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+          <MetricCard
+            icon={Users}
+            label="Gesamt Follower"
+            value={data.followers}
+            color="#FF4757"
+            iconBg="#FFF1F2"
+          />
+          <MetricCard
+            icon={Eye}
+            label="Ø Views pro Video"
+            value={data.avgViews}
+            color="#06B6D4"
+            iconBg="#F0F9FF"
+          />
+          <MetricCard
+            icon={Play}
+            label="Videos veröffentlicht"
+            value={data.postsCount}
+            color="#FF4757"
+            iconBg="#FFF1F2"
+          />
+          <MetricCard
+            icon={TrendingUp}
+            label="Engagement Rate"
+            value={((data.totalLikes + data.totalComments + data.totalShares) / data.followers * 100).toFixed(1) + '%'}
+            color="#F59E0B"
+            iconBg="#FFFBEB"
+          />
+        </div>
+
+        {/* Wiedergabezeit Analyse */}
         <div style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '20px',
+          backgroundColor: 'white',
+          borderRadius: '16px',
           padding: '24px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-          border: '1px solid rgba(255,255,255,0.2)'
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+          marginBottom: '24px'
         }}>
-          <div style={{
+          <h2 style={{
+            fontSize: '20px',
+            fontWeight: 'bold',
+            color: '#1E293B',
+            marginBottom: '16px',
             display: 'flex',
             alignItems: 'center',
-            marginBottom: '20px'
+            margin: 0
           }}>
-            <span style={{ fontSize: '24px', marginRight: '10px' }}>📈</span>
-            <h3 style={{ margin: '0', fontSize: '18px', fontWeight: '600' }}>7-Tage Performance</h3>
-          </div>
+            <Clock size={20} color="#FF4757" style={{ marginRight: '8px' }} />
+            Wiedergabezeit Analyse
+          </h2>
           
-          <div style={{ position: 'relative', height: '200px' }}>
-            <svg width="100%" height="100%" viewBox="0 0 280 180">
-              {/* Grid Lines */}
-              {[0, 1, 2, 3, 4].map(i => (
-                <line 
-                  key={i}
-                  x1="40" 
-                  y1={40 + i * 25} 
-                  x2="260" 
-                  y2={40 + i * 25}
-                  stroke="#f0f0f0" 
-                  strokeWidth="1"
-                />
-              ))}
-              
-              {/* Views Line */}
-              <polyline
-                fill="none"
-                stroke="#4ECDC4"
-                strokeWidth="3"
-                points={weeklyData.map((d, i) => 
-                  `${60 + i * 30},${160 - (d.views / 35000) * 120}`
-                ).join(' ')}
-              />
-              
-              {/* Data Points */}
-              {weeklyData.map((d, i) => (
-                <g key={i}>
-                  <circle
-                    cx={60 + i * 30}
-                    cy={160 - (d.views / 35000) * 120}
-                    r="4"
-                    fill="#4ECDC4"
-                  />
-                  <text
-                    x={60 + i * 30}
-                    y={175}
-                    textAnchor="middle"
-                    fontSize="12"
-                    fill="#666"
-                  >
-                    {d.day}
-                  </text>
-                </g>
-              ))}
-              
-              {/* Y-Axis Labels */}
-              {['0', '10k', '20k', '30k'].map((label, i) => (
-                <text
-                  key={i}
-                  x="35"
-                  y={165 - i * 30}
-                  textAnchor="end"
-                  fontSize="10"
-                  fill="#999"
-                >
-                  {label}
-                </text>
-              ))}
-            </svg>
+          <div style={{ marginTop: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontSize: '14px', color: '#64748B' }}>Durchschnittliche Wiedergabezeit</span>
+              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#1E293B' }}>{data.avgWatchTime.toFixed(1)}%</span>
+            </div>
+            <div style={{ width: '100%', backgroundColor: '#E2E8F0', borderRadius: '8px', height: '12px', marginBottom: '16px' }}>
+              <div style={{
+                width: `${Math.min(100, data.avgWatchTime)}%`,
+                height: '12px',
+                background: 'linear-gradient(90deg, #FF4757, #FF6B35)',
+                borderRadius: '8px',
+                transition: 'width 0.5s ease'
+              }}></div>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: '14px', color: '#64748B', margin: '0 0 4px 0' }}>Ø Wiedergabezeit</p>
+                <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#1E293B', margin: 0 }}>
+                  {data.avgWatchTimeSeconds.toFixed(1)}s
+                </p>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: '14px', color: '#64748B', margin: '0 0 4px 0' }}>Ø Video Länge</p>
+                <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#1E293B', margin: 0 }}>
+                  {data.videoDuration.toFixed(1)}s
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Top Videos */}
-        <div style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '20px',
-          padding: '24px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-          border: '1px solid rgba(255,255,255,0.2)'
-        }}>
-          <div style={{
+        {/* Top 5 Videos */}
+        <div style={{ marginBottom: '24px' }}>
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: 'bold',
+            color: '#1E293B',
+            marginBottom: '16px',
             display: 'flex',
             alignItems: 'center',
-            marginBottom: '20px'
+            margin: 0
           }}>
-            <span style={{ fontSize: '24px', marginRight: '10px' }}>🏆</span>
-            <h3 style={{ margin: '0', fontSize: '18px', fontWeight: '600' }}>Top Videos</h3>
-          </div>
-          
-          <div style={{ maxHeight: '240px', overflowY: 'auto' }}>
+            <TrendingUp size={24} color="#FF4757" style={{ marginRight: '8px' }} />
+            Top 5 Videos
+          </h2>
+          <div style={{ marginTop: '16px' }}>
             {topVideos.map((video, index) => (
-              <div key={video.id} style={{
-                background: index === 0 ? 'linear-gradient(135deg, #FFD93D, #FF9A3D)' : '#f8f9fa',
-                padding: '16px',
-                borderRadius: '12px',
-                marginBottom: '12px',
-                color: index === 0 ? 'white' : '#333'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  marginBottom: '8px'
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      marginBottom: '4px'
-                    }}>
-                      #{index + 1} {video.title}
-                    </div>
-                    <div style={{
-                      fontSize: '12px',
-                      opacity: index === 0 ? '0.9' : '0.7',
-                      display: 'flex',
-                      gap: '16px'
-                    }}>
-                      <span>👁️ {(video.views / 1000).toFixed(0)}k</span>
-                      <span>❤️ {(video.likes / 1000).toFixed(1)}k</span>
-                      <span>📊 {video.engagement}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <VideoRankCard key={video.id} video={video} rank={index + 1} />
             ))}
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '20px',
-          padding: '24px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-          border: '1px solid rgba(255,255,255,0.2)'
-        }}>
-          <div style={{
+        {/* Content Kategorien */}
+        <div>
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: 'bold',
+            color: '#1E293B',
+            marginBottom: '16px',
             display: 'flex',
             alignItems: 'center',
-            marginBottom: '20px'
+            margin: 0
           }}>
-            <span style={{ fontSize: '24px', marginRight: '10px' }}>⚡</span>
-            <h3 style={{ margin: '0', fontSize: '18px', fontWeight: '600' }}>Quick Stats</h3>
-          </div>
-          
-          <div style={{ display: 'grid', gap: '16px' }}>
-            <div style={{
-              background: 'linear-gradient(135deg, #A8E6CF, #7FCDCD)',
-              padding: '16px',
-              borderRadius: '12px',
-              color: 'white',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <div>
-                <div style={{ fontSize: '14px', fontWeight: '600' }}>Wachstum</div>
-                <div style={{ fontSize: '12px', opacity: '0.9' }}>Letzte 30 Tage</div>
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: '700' }}>
-                +{data.growthRate}%
-              </div>
-            </div>
-            
-            <div style={{
-              background: 'linear-gradient(135deg, #FF8E8E, #FF6B6B)',
-              padding: '16px',
-              borderRadius: '12px',
-              color: 'white',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <div>
-                <div style={{ fontSize: '14px', fontWeight: '600' }}>Videos</div>
-                <div style={{ fontSize: '12px', opacity: '0.9' }}>Gesamt</div>
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: '700' }}>
-                {data.totalVideos}
-              </div>
-            </div>
-            
-            <div style={{
-              background: 'linear-gradient(135deg, #4ECDC4, #44A08D)',
-              padding: '16px',
-              borderRadius: '12px',
-              color: 'white',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <div>
-                <div style={{ fontSize: '14px', fontWeight: '600' }}>Ø Engagement</div>
-                <div style={{ fontSize: '12px', opacity: '0.9' }}>Pro Video</div>
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: '700' }}>
-                {data.engagement}%
-              </div>
-            </div>
+            <Hash size={24} color="#FF4757" style={{ marginRight: '8px' }} />
+            Content Kategorien
+          </h2>
+          <div style={{ marginTop: '16px' }}>
+            <HashtagCategoryCard
+              title="Maja reagiert"
+              hashtag="#majareagiert"
+              data={hashtagData.majareagiert}
+              color="#8B5CF6"
+              textColor="#8B5CF6"
+              bgColor="#F3E8FF"
+            />
+            <HashtagCategoryCard
+              title="Maja wagt's"
+              hashtag="#majawagts"
+              data={hashtagData.majawagts}
+              color="#3B82F6"
+              textColor="#3B82F6"
+              bgColor="#DBEAFE"
+            />
+            <HashtagCategoryCard
+              title="Maja trifft"
+              hashtag="#majatrifft"
+              data={hashtagData.majatrifft}
+              color="#10B981"
+              textColor="#10B981"
+              bgColor="#D1FAE5"
+            />
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
-export default App;
+export default TikTokDashboard;
