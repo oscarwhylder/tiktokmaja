@@ -1,14 +1,460 @@
 <!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#FF0050" />
-    <meta name="description" content="TikTok Analytics Dashboard für Majanische Gedanken" />
-    <title>TikTok Dashboard - Majanische Gedanken</title>
-  </head>
-  <body>
-    <noscript>Bitte aktiviere JavaScript um das Dashboard zu nutzen.</noscript>
-    <div id="root"></div>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Analytics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            margin-bottom: 32px;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .header-icon {
+            padding: 12px;
+            border-radius: 12px;
+            background: linear-gradient(to right, #EC4899, #EF4444);
+            margin-right: 16px;
+            color: white;
+            font-size: 24px;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        h1 {
+            font-size: 36px;
+            font-weight: bold;
+            color: #111827;
+            margin: 0;
+        }
+        
+        .subtitle {
+            color: #6B7280;
+            margin-top: 4px;
+            margin: 0;
+        }
+        
+        .debug-box {
+            background-color: #F3F4F6;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+        
+        .error-box {
+            background-color: #FEF2F2;
+            border: 1px solid #FECACA;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .error-title {
+            color: #DC2626;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            margin: 0;
+        }
+        
+        .error-message {
+            color: #991B1B;
+            font-size: 14px;
+            margin: 0;
+            margin-bottom: 12px;
+        }
+        
+        .retry-btn {
+            padding: 8px 16px;
+            background-color: #DC2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .retry-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .loading-box, .initial-box {
+            background-color: white;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #F3F4F6;
+            border-top: 4px solid #FF4757;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-title, .initial-title {
+            color: #374151;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            margin: 0;
+        }
+        
+        .initial-title {
+            font-size: 20px;
+        }
+        
+        .loading-text, .initial-text {
+            color: #6B7280;
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        .initial-text {
+            margin-bottom: 20px;
+        }
+        
+        .emoji {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .load-btn {
+            padding: 12px 24px;
+            background-color: #FF4757;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            margin: 0 auto;
+        }
+        
+        .load-btn:hover {
+            background-color: #FF3742;
+        }
+        
+        .btn-icon {
+            margin-right: 8px;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            color: #6B7280;
+            font-size: 14px;
+        }
+        
+        .metric-value {
+            font-weight: 600;
+            color: #111827;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="header-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5,3 19,12 5,21"></polygon>
+                    </svg>
+                </div>
+                <div>
+                    <h1>TikTok Analytics</h1>
+                    <p class="subtitle" id="subtitle">
+                        Powered by Metricool API • Waiting for API • Letztes Update: <span id="lastUpdate">-</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debug Info -->
+        <div class="debug-box" id="debugBox">
+            <strong>Debug Info:</strong><br/>
+            hasRealData: <span id="hasRealData">false</span><br/>
+            apiError: <span id="apiError">null</span><br/>
+            loading: <span id="loading">false</span><br/>
+            lastUpdate: <span id="debugLastUpdate">-</span>
+        </div>
+
+        <!-- Error Display -->
+        <div class="error-box" id="errorBox" style="display: none;">
+            <h3 class="error-title">❌ Metricool API Fehler</h3>
+            <p class="error-message" id="errorMessage"></p>
+            <button class="retry-btn" id="retryBtn">Erneut versuchen</button>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-box" id="loadingBox" style="display: none;">
+            <div class="spinner"></div>
+            <h3 class="loading-title">Lade Metricool-Daten...</h3>
+            <p class="loading-text">Verbinde mit TikTok Analytics API</p>
+        </div>
+
+        <!-- Initial State -->
+        <div class="initial-box" id="initialBox">
+            <div class="emoji">📊</div>
+            <h3 class="initial-title">TikTok Analytics Dashboard</h3>
+            <p class="initial-text">Klicke auf "Daten aktualisieren" um deine echten TikTok-Daten zu laden</p>
+            <button class="load-btn" id="loadBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                    <polyline points="22,12 18,8 18,16"></polyline>
+                    <path d="M2,12 L18,12"></path>
+                </svg>
+                Daten aktualisieren
+            </button>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard" id="dashboard" style="display: none;">
+            <div class="card">
+                <h3 class="card-title">📊 Übersicht</h3>
+                <div class="metric">
+                    <span class="metric-label">Follower</span>
+                    <span class="metric-value" id="followers">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Ø Views pro Video</span>
+                    <span class="metric-value" id="avgViews">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Total Likes</span>
+                    <span class="metric-value" id="totalLikes">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Total Comments</span>
+                    <span class="metric-value" id="totalComments">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let state = {
+            loading: false,
+            apiError: null,
+            hasRealData: false,
+            data: {
+                followers: 0,
+                avgViews: 0,
+                totalLikes: 0,
+                totalComments: 0,
+                lastUpdate: new Date().toISOString()
+            }
+        };
+
+        // UI Elements
+        const elements = {
+            debugBox: document.getElementById('debugBox'),
+            hasRealData: document.getElementById('hasRealData'),
+            apiError: document.getElementById('apiError'),
+            loading: document.getElementById('loading'),
+            debugLastUpdate: document.getElementById('debugLastUpdate'),
+            errorBox: document.getElementById('errorBox'),
+            errorMessage: document.getElementById('errorMessage'),
+            retryBtn: document.getElementById('retryBtn'),
+            loadingBox: document.getElementById('loadingBox'),
+            initialBox: document.getElementById('initialBox'),
+            loadBtn: document.getElementById('loadBtn'),
+            dashboard: document.getElementById('dashboard'),
+            subtitle: document.getElementById('subtitle'),
+            lastUpdate: document.getElementById('lastUpdate'),
+            followers: document.getElementById('followers'),
+            avgViews: document.getElementById('avgViews'),
+            totalLikes: document.getElementById('totalLikes'),
+            totalComments: document.getElementById('totalComments')
+        };
+
+        // Update UI based on state
+        function updateUI() {
+            // Debug Info
+            elements.hasRealData.textContent = state.hasRealData.toString();
+            elements.apiError.textContent = state.apiError || 'null';
+            elements.loading.textContent = state.loading.toString();
+            elements.debugLastUpdate.textContent = state.data.lastUpdate;
+
+            // Visibility
+            elements.errorBox.style.display = state.apiError ? 'block' : 'none';
+            elements.loadingBox.style.display = state.loading ? 'block' : 'none';
+            elements.initialBox.style.display = (!state.loading && !state.apiError && !state.hasRealData) ? 'block' : 'none';
+            elements.dashboard.style.display = (state.hasRealData && !state.apiError) ? 'block' : 'none';
+
+            // Error Message
+            if (state.apiError) {
+                elements.errorMessage.textContent = state.apiError;
+            }
+
+            // Subtitle
+            const dataStatus = state.hasRealData ? 'Live Data' : 'Waiting for API';
+            elements.subtitle.innerHTML = `Powered by Metricool API • ${dataStatus} • Letztes Update: <span id="lastUpdate">${new Date(state.data.lastUpdate).toLocaleString('de-DE')}</span>`;
+
+            // Dashboard Data
+            if (state.hasRealData) {
+                elements.followers.textContent = state.data.followers.toLocaleString('de-DE');
+                elements.avgViews.textContent = state.data.avgViews.toLocaleString('de-DE');
+                elements.totalLikes.textContent = state.data.totalLikes.toLocaleString('de-DE');
+                elements.totalComments.textContent = state.data.totalComments.toLocaleString('de-DE');
+            }
+
+            // Button states
+            elements.retryBtn.disabled = state.loading;
+            elements.loadBtn.disabled = state.loading;
+        }
+
+        // Fetch Metricool Data
+        async function fetchMetricoolData() {
+            state.loading = true;
+            state.apiError = null;
+            updateUI();
+
+            try {
+                console.log('🚀 CSP-Safe API Call starting...');
+                
+                const response = await fetch('/.netlify/functions/tiktok-api', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                console.log('📡 Response Status:', response.status, response.statusText);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const responseText = await response.text();
+                console.log('📄 Raw Response (first 500 chars):', responseText.substring(0, 500));
+
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('❌ JSON Parse Error:', parseError);
+                    throw new Error(`Invalid JSON response: ${parseError.message}`);
+                }
+
+                console.log('📊 Parsed API Response:', result);
+                console.log('✅ Success Value:', result.success);
+                console.log('🔄 API Version:', result.apiVersion);
+
+                // Check for real data
+                if (result.success === true && result.profile && result.stats) {
+                    console.log('✅ ECHTE DATEN ERKANNT!');
+                    state.hasRealData = true;
+                    state.data = {
+                        followers: result.profile.followers,
+                        avgViews: Math.round(result.stats.avg_views),
+                        totalLikes: result.stats.total_likes,
+                        totalComments: result.stats.total_comments,
+                        lastUpdate: new Date().toISOString()
+                    };
+                    state.apiError = null;
+                } else {
+                    console.log('❌ KEINE ECHTEN DATEN!');
+                    state.hasRealData = false;
+                    const errorMessage = result.error || 'API returned no valid data';
+                    const debugInfo = result.debugInfo ? ` | Debug: ${JSON.stringify(result.debugInfo).substring(0, 200)}...` : '';
+                    state.apiError = errorMessage + debugInfo;
+                }
+
+            } catch (error) {
+                console.error('💥 FETCH ERROR:', error);
+                state.hasRealData = false;
+                state.apiError = `API Fehler: ${error.message}`;
+            } finally {
+                state.loading = false;
+                updateUI();
+            }
+        }
+
+        // Event Listeners
+        elements.loadBtn.addEventListener('click', fetchMetricoolData);
+        elements.retryBtn.addEventListener('click', fetchMetricoolData);
+
+        // Initial UI Update
+        updateUI();
+
+        console.log('🚀 CSP-Safe TikTok Dashboard loaded successfully!');
+    </script>
+</body>
 </html>
